@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>WealthGrow AI Agent</title>
+
+  <style>
+    * { box-sizing: border-box; font-family: "Malgun Gothic", Arial, sans-serif; }
+    body { margin: 0; background: #0b1628; color: #eaf2ff; }
+    .app {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(35, 108, 255, 0.18), transparent 32%),
+        linear-gradient(135deg, #0b1628 0%, #111f35 55%, #0c1829 100%);
+    }
+
+    .topbar {
+      height: 78px; padding: 16px 24px; border-bottom: 1px solid rgba(130, 160, 210, 0.18);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .logo {
+      width: 46px; height: 46px; border-radius: 14px;
+      background: linear-gradient(135deg, #2f7bff, #1a4fd8);
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+      box-shadow: 0 0 24px rgba(47, 123, 255, 0.35);
+    }
+    .brand-title { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; }
+    .version {
+      display: inline-block; margin-left: 8px; padding: 4px 10px; border-radius: 9px;
+      background: rgba(47, 123, 255, 0.18); color: #63a0ff; font-size: 13px; font-weight: 800;
+    }
+    .brand-subtitle { margin-top: 3px; font-size: 13px; color: #9fb0ca; }
+    .top-right { display: flex; align-items: center; gap: 14px; }
+    .date-pill {
+      padding: 9px 14px; border-radius: 10px; border: 1px solid rgba(120, 155, 210, 0.25);
+      background: rgba(10, 20, 38, 0.7); color: #b9c8df; font-size: 13px;
+    }
+    .green-dot {
+      display: inline-block; width: 8px; height: 8px; margin-left: 7px; border-radius: 50%;
+      background: #20e58c; box-shadow: 0 0 10px rgba(32, 229, 140, 0.7);
+    }
+    .avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, #e9f2ff, #86a7d9); color: #12213a;
+      display: flex; align-items: center; justify-content: center; font-weight: 900;
+    }
+
+    .layout { display: grid; grid-template-columns: 370px 1fr 370px; gap: 16px; padding: 16px; }
+    .panel {
+      background: rgba(20, 33, 55, 0.88); border: 1px solid rgba(140, 170, 215, 0.18);
+      border-radius: 14px; box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+    }
+    .left, .right { padding: 16px; min-height: calc(100vh - 110px); }
+    .center { min-height: calc(100vh - 110px); display: flex; flex-direction: column; overflow: hidden; }
+
+    .card {
+      background: rgba(8, 18, 34, 0.62); border: 1px solid rgba(132, 165, 220, 0.15);
+      border-radius: 12px; padding: 14px; margin-bottom: 14px;
+    }
+    .section-title {
+      display: flex; align-items: center; gap: 8px; margin: 0 0 13px;
+      font-size: 16px; font-weight: 900; color: #f4f8ff;
+    }
+    .blue { color: #4f94ff; }
+
+    .search-wrap { position: relative; }
+    .search-area { display: flex; gap: 8px; margin-bottom: 8px; }
+    input {
+      width: 100%; height: 38px; padding: 0 12px; border: 1px solid rgba(140, 170, 215, 0.25);
+      border-radius: 7px; background: #101d32; color: #eaf2ff; outline: none;
+    }
+    input::placeholder { color: #7788a3; }
+    button {
+      border: 0; border-radius: 7px; background: linear-gradient(135deg, #2f7bff, #1d5ee6);
+      color: white; font-weight: 900; cursor: pointer; transition: 0.15s;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(47, 123, 255, 0.25); }
+    .search-btn { width: 70px; height: 38px; }
+
+    .suggestion-box {
+      display: none; position: absolute; top: 43px; left: 0; right: 78px; max-height: 270px;
+      overflow-y: auto; z-index: 99; background: #0f1c31; border: 1px solid rgba(140, 170, 215, 0.28);
+      border-radius: 10px; box-shadow: 0 16px 35px rgba(0, 0, 0, 0.4);
+    }
+    .suggestion-item { padding: 11px 12px; border-bottom: 1px solid rgba(140, 170, 215, 0.1); cursor: pointer; }
+    .suggestion-item:hover { background: rgba(47, 123, 255, 0.16); }
+    .suggest-name { font-size: 14px; font-weight: 900; color: #f4f8ff; }
+    .suggest-code { margin-top: 3px; color: #8fa2bd; font-size: 12px; }
+    .search-help { font-size: 12px; color: #879ab7; margin-bottom: 12px; line-height: 1.45; }
+
+    .type-card {
+      margin: 12px 0 14px; padding: 12px; border-radius: 12px;
+      background: rgba(8, 18, 34, 0.55); border: 1px solid rgba(140, 170, 215, 0.16);
+    }
+    .type-title { font-size: 13px; font-weight: 900; color: #dce8fb; margin-bottom: 10px; }
+    .type-options { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .type-btn {
+      width: 100%; padding: 10px 11px; border-radius: 9px;
+      background: rgba(120, 150, 190, 0.12); border: 1px solid rgba(140, 170, 215, 0.18);
+      color: #dce8fb; text-align: left; font-size: 13px; font-weight: 900; cursor: pointer;
+    }
+    .type-btn span { display: block; margin-top: 4px; color: #8fa2bd; font-size: 11px; font-weight: 500; }
+    .type-btn.active {
+      background: linear-gradient(135deg, rgba(47, 123, 255, 0.35), rgba(29, 94, 230, 0.18));
+      border-color: rgba(79, 148, 255, 0.75); color: #ffffff;
+      box-shadow: 0 0 18px rgba(47, 123, 255, 0.18);
+    }
+    .type-desc {
+      margin-top: 10px; padding: 10px; border-radius: 8px; background: rgba(47, 123, 255, 0.10);
+      color: #b9c8df; font-size: 12px; line-height: 1.5;
+    }
+
+    .stock-name { display: flex; justify-content: space-between; align-items: center; font-size: 21px; font-weight: 900; }
+    .stock-code { color: #a8b5c9; font-size: 14px; font-weight: 500; }
+    .star { color: #ffc943; font-size: 22px; }
+    .price-row { display: flex; align-items: end; justify-content: space-between; margin-top: 10px; gap: 8px; }
+    .price { font-size: 30px; font-weight: 900; letter-spacing: -1px; }
+    .change.up { color: #ff5d7a; font-weight: 900; }
+    .change.down { color: #5a9dff; font-weight: 900; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
+    .chip {
+      padding: 6px 10px; border-radius: 7px; background: rgba(120, 150, 190, 0.16);
+      color: #c0cee4; font-size: 12px; border: 1px solid rgba(140, 170, 215, 0.12);
+    }
+    .diagnosis {
+      border-top: 1px solid rgba(140, 170, 215, 0.14); padding-top: 12px;
+      line-height: 1.55; color: #d9e5f6; font-size: 13px;
+    }
+    .wide-btn { width: 100%; height: 42px; margin-top: 12px; background: rgba(100, 130, 170, 0.24); }
+
+    .market-row {
+      display: flex; justify-content: space-between; align-items: center; padding: 12px;
+      border: 1px solid rgba(140, 170, 215, 0.12); border-radius: 9px; background: rgba(9, 18, 34, 0.55);
+    }
+    .market-row + .market-row { margin-top: 8px; }
+    .label { color: #9fb0ca; font-size: 12px; }
+    .value-big { margin-top: 4px; font-size: 23px; font-weight: 900; color: #5a9dff; }
+    .warning-card { background: rgba(255, 178, 41, 0.12); border-color: rgba(255, 178, 41, 0.35); color: #ffcc66; }
+    .small-text { color: #d8e3f2; font-size: 13px; line-height: 1.55; }
+
+    .chat-header {
+      padding: 16px 18px; border-bottom: 1px solid rgba(140, 170, 215, 0.12);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .chat-title { font-size: 18px; font-weight: 900; }
+    .chat-body { flex: 1; padding: 20px; overflow-y: auto; }
+    .message-row { display: flex; gap: 12px; margin-bottom: 20px; }
+    .message-row.user { justify-content: flex-end; }
+    .bot-icon {
+      width: 36px; height: 36px; border-radius: 11px; background: linear-gradient(135deg, #2f7bff, #1a4fd8);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .bubble {
+      max-width: 78%; padding: 16px; border-radius: 12px; line-height: 1.75; font-size: 14px;
+      border: 1px solid rgba(140, 170, 215, 0.16); background: rgba(8, 18, 34, 0.68);
+    }
+    .user .bubble {
+      background: linear-gradient(135deg, #2f7bff, #1b60e8); color: white; border: 0;
+      max-width: 45%; text-align: center;
+    }
+    .time { margin-top: 6px; color: #7f91ad; font-size: 12px; }
+    .chat-input-area { border-top: 1px solid rgba(140, 170, 215, 0.12); padding: 14px; }
+    .chat-input-row { display: flex; gap: 10px; }
+    .chat-input-row input { height: 52px; font-size: 14px; }
+    .send-btn { width: 130px; font-size: 15px; }
+    .quick-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .quick {
+      padding: 9px 13px; border-radius: 8px; border: 1px solid rgba(140, 170, 215, 0.18);
+      background: rgba(8, 18, 34, 0.55); color: #dce8fb; font-size: 13px; cursor: pointer;
+    }
+
+    .right-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .badge {
+      padding: 5px 10px; border-radius: 8px; background: rgba(20, 220, 130, 0.15);
+      color: #24e58e; font-size: 12px; font-weight: 900;
+    }
+    .alloc-item { margin-bottom: 17px; }
+    .alloc-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 800; font-size: 14px; }
+    .bar-bg { height: 8px; border-radius: 20px; background: rgba(120, 150, 190, 0.25); overflow: hidden; }
+    .bar { height: 100%; border-radius: 20px; }
+    .bar.bluebar { background: linear-gradient(90deg, #4f94ff, #2d6df6); }
+    .bar.purplebar { background: linear-gradient(90deg, #8a72ff, #5c5dff); }
+    .bar.mintbar { background: linear-gradient(90deg, #68e2d0, #4db9ff); }
+
+    .summary-box {
+      margin-top: 30px; padding: 16px; border-radius: 13px; background: rgba(8, 18, 34, 0.62);
+      border: 1px solid rgba(140, 170, 215, 0.14);
+    }
+    .summary-row {
+      display: flex; justify-content: space-between; padding: 13px 0;
+      border-bottom: 1px solid rgba(140, 170, 215, 0.12); font-size: 14px; gap: 10px;
+    }
+    .summary-row:last-child { border-bottom: 0; }
+    .green { color: #21e88e; font-weight: 900; }
+    .red { color: #ff5d7a; font-weight: 900; }
+    .mini-chart {
+      margin-top: 14px; height: 90px; border-radius: 10px;
+      background: linear-gradient(180deg, rgba(47,123,255,0.18), rgba(47,123,255,0)), rgba(8,18,34,0.45);
+      border: 1px solid rgba(140,170,215,0.12); position: relative; overflow: hidden;
+    }
+    .mini-chart svg { width: 100%; height: 100%; }
+
+    @media (max-width: 1200px) {
+      .layout { grid-template-columns: 1fr; }
+      .left, .right, .center { min-height: auto; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">🤖</div>
+        <div>
+          <div class="brand-title">WealthGrow <span class="version">AI Agent v2.1</span></div>
+          <div class="brand-subtitle">개인의 일상과 경제적 성장을 돕는 투자 분석형 AI 자산 관리자</div>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <div class="date-pill">🕘 최근 거래일 데이터 조회 가능 <span class="green-dot"></span></div>
+        <div class="avatar">도</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel left">
+        <div class="card">
+          <h3 class="section-title"><span class="blue">🔍</span> AI 기업/종목 실시간 분석</h3>
+
+          <div class="search-wrap">
+            <div class="search-area">
+              <input id="searchInput" placeholder="예: 하이닉스, 삼성, 000660, NVDA, Tesla" value="SK하이닉스" autocomplete="off" />
+              <button class="search-btn" onclick="searchStock()">조회</button>
+            </div>
+            <div class="suggestion-box" id="suggestionBox"></div>
+          </div>
+
+          <div class="search-help">종목명을 일부만 입력해도 선택할 수 있습니다. 예: “하이”, “삼성”, “한화”, “엔비”, “Tesla”</div>
+
+          <div class="type-card">
+            <div class="type-title">투자 유형 선택</div>
+
+            <div class="type-options">
+              <button class="type-btn active" data-type="short" onclick="selectInvestmentType('short')">
+                단기 투자형
+                <span>1일~1개월 · 단기 모멘텀/RSI/손절 기준 중심</span>
+              </button>
+
+              <button class="type-btn" data-type="mid" onclick="selectInvestmentType('mid')">
+                중장기 투자형
+                <span>3개월~1년 · 추세 지속성/리밸런싱 중심</span>
+              </button>
+
+              <button class="type-btn" data-type="long" onclick="selectInvestmentType('long')">
+                장기 투자형
+                <span>1년 이상 · 성장성/산업 방향성/장기 보유 중심</span>
+              </button>
+            </div>
+
+            <div class="type-desc" id="investmentTypeDesc">
+              단기 투자형은 최근 가격 흐름, 변동성, RSI, 단기 모멘텀을 중심으로 분석합니다.
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:0;">
+            <div class="stock-name">
+              <div>
+                <span id="stockName">검색 대기</span>
+                <span class="stock-code" id="stockCode">(-)</span>
+              </div>
+              <div class="star">☆</div>
+            </div>
+
+            <div class="price-row">
+              <div class="price" id="stockPrice">-</div>
+              <div class="change up" id="stockChange">-</div>
+            </div>
+
+            <div class="chips">
+              <div class="chip" id="volume">거래량 -</div>
+              <div class="chip" id="marketCap">시장 -</div>
+            </div>
+
+            <div class="mini-chart">
+              <svg viewBox="0 0 320 90" preserveAspectRatio="none">
+                <path id="chartArea" d="M0,75 L25,70 L50,62 L75,66 L100,50 L125,47 L150,39 L175,44 L200,32 L225,35 L250,24 L275,21 L320,15 L320,90 L0,90 Z" fill="rgba(47,123,255,0.18)"></path>
+                <path id="chartLine" d="M0,75 L25,70 L50,62 L75,66 L100,50 L125,47 L150,39 L175,44 L200,32 L225,35 L250,24 L275,21 L320,15" fill="none" stroke="#4f94ff" stroke-width="3"></path>
+              </svg>
+            </div>
+
+            <div class="diagnosis">
+              <b class="blue">📡 Agent 진단:</b><br />
+              <span id="diagnosisText">좌측 검색창에 종목명, 국내 6자리 종목코드 또는 해외 티커를 입력하면 최근 거래일 기준 가격과 AI 분석 결과를 제공합니다.</span>
+            </div>
+
+            <button class="wide-btn" onclick="makeStrategy()">→ 이 종목 기반 전략 대화하기</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title"><span class="blue">📈</span> 실시간 마켓 지표</h3>
+          <div class="market-row">
+            <div>
+              <div class="label">KOSPI 지수</div>
+              <div class="value-big" id="kospiValue">조회 중</div>
+            </div>
+            <div class="change" id="kospiChange">-</div>
+          </div>
+          <div class="market-row">
+            <div>
+              <div class="label">원/달러 환율</div>
+              <div class="value-big" id="fxValue" style="color:#ff5d7a;">조회 중</div>
+            </div>
+            <div class="change" id="fxChange">-</div>
+          </div>
+        </div>
+
+        <div class="card warning-card">
+          <h3 class="section-title">⚠️ 시장 변동성 브리핑</h3>
+          <div class="small-text" id="marketBrief">KOSPI와 환율 데이터를 조회하여 시장 변동성 브리핑을 생성합니다.</div>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title"><span class="blue">📰</span> 실시간 큐레이션</h3>
+          <div class="blue" style="font-size:13px; font-weight:900; margin-bottom:6px;">오늘의 인사이트</div>
+          <div class="small-text" id="insightText">종목을 검색하면 가격 흐름, RSI, 변동성을 기반으로 투자 인사이트를 생성합니다.</div>
+        </div>
+      </aside>
+
+      <section class="panel center">
+        <div class="chat-header">
+          <div class="chat-title">🤖 WealthGrow AI 투자 분석 채팅</div>
+          <div class="label">종목 검색 · 투자 유형별 분석 · 리스크 진단 · 포트폴리오 배분</div>
+        </div>
+
+        <div class="chat-body" id="chatBody">
+          <div class="message-row">
+            <div class="bot-icon">🤖</div>
+            <div>
+              <div class="bubble">
+                안녕하세요! <b>WealthGrow AI Agent</b>입니다. 좌측에서 <b>단기/중장기/장기 투자형</b>을 선택한 뒤 종목을 검색해 보세요.
+                같은 종목이라도 투자 기간에 따라 점수, 목표수익률, 손절/관리 기준, 포트폴리오 배분이 다르게 계산됩니다.
+              </div>
+              <div class="time">시스템 안내</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <div class="chat-input-row">
+            <input id="chatInput" placeholder="예시: 이 종목 리스크 분석해줘 / 2,000만 원으로 포트폴리오 배분해줘" />
+            <button class="send-btn" onclick="sendMessage()">✈ 분석 요청</button>
+          </div>
+
+          <div class="quick-actions">
+            <div class="quick" onclick="quickAsk('리스크 관리 전략을 알려줘')">🛡 리스크 관리 전략</div>
+            <div class="quick" onclick="quickAsk('리밸런싱 전략을 추천해줘')">⚖ 리밸런싱</div>
+            <div class="quick" onclick="quickAsk('이 종목의 매수 타이밍을 분석해줘')">📊 매수 타이밍</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel right">
+        <div class="right-title">
+          <h3 class="section-title" style="margin:0;"><span class="blue">◔</span> 최적 배분안</h3>
+          <span class="badge">대기 중</span>
+        </div>
+
+        <div class="alloc-item">
+          <div class="alloc-top">
+            <span id="allocStockName">핵심 분석 종목</span>
+            <span class="blue" id="allocStockPct">40%</span>
+          </div>
+          <div class="bar-bg"><div class="bar bluebar" id="allocStockBar" style="width:40%;"></div></div>
+        </div>
+
+        <div class="alloc-item">
+          <div class="alloc-top">
+            <span id="allocEtfName">글로벌 시장/섹터 ETF</span>
+            <span style="color:#b8a8ff;" id="allocEtfPct">30%</span>
+          </div>
+          <div class="bar-bg"><div class="bar purplebar" id="allocEtfBar" style="width:30%;"></div></div>
+        </div>
+
+        <div class="alloc-item">
+          <div class="alloc-top">
+            <span>단기 유동성 현금</span>
+            <span style="color:#85eee0;" id="allocCashPct">30%</span>
+          </div>
+          <div class="bar-bg"><div class="bar mintbar" id="allocCashBar" style="width:30%;"></div></div>
+        </div>
+
+        <div class="summary-box">
+          <div class="section-title" style="font-size:15px;">전략 요약</div>
+          <div class="summary-row"><span class="label">투자 유형</span><b id="selectedTypeLabel">단기 투자형</b></div>
+          <div class="summary-row"><span class="label">전략 유형</span><b id="strategyType">단기 모멘텀 대응</b></div>
+          <div class="summary-row"><span class="label">목표 기대수익률</span><span class="green" id="expectedReturn">-</span></div>
+          <div class="summary-row"><span class="label">최대 낙폭 우려(MDD)</span><span class="red" id="mdd">-</span></div>
+          <div class="summary-row"><span class="label">AI 신뢰도</span><span class="blue" id="confidence">-</span></div>
+        </div>
+
+        <div class="summary-box">
+          <div class="section-title" style="font-size:15px;">AI 투자 판단</div>
+          <div class="small-text" id="rightComment">종목을 검색하면 해당 종목의 추세, 변동성, RSI를 기반으로 투자 판단을 생성합니다.</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const LOCAL_STOCK_MASTER = [
+      { name: "SK하이닉스", code: "000660", symbol: "000660.KS", market: "KOSPI", keywords: ["하이닉스", "하이", "sk", "sk하이닉스", "hynix"] },
+      { name: "삼성전자", code: "005930", symbol: "005930.KS", market: "KOSPI", keywords: ["삼성", "삼전", "samsung"] },
+      { name: "현대차", code: "005380", symbol: "005380.KS", market: "KOSPI", keywords: ["현대", "현대자동차", "hyundai"] },
+      { name: "기아", code: "000270", symbol: "000270.KS", market: "KOSPI", keywords: ["kia"] },
+      { name: "NAVER", code: "035420", symbol: "035420.KS", market: "KOSPI", keywords: ["네이버", "naver"] },
+      { name: "카카오", code: "035720", symbol: "035720.KS", market: "KOSPI", keywords: ["kakao"] },
+      { name: "한화에어로스페이스", code: "012450", symbol: "012450.KS", market: "KOSPI", keywords: ["한화", "한화에어로", "hanwha", "aerospace"] },
+      { name: "한미반도체", code: "042700", symbol: "042700.KS", market: "KOSPI", keywords: ["한미", "hanmi"] },
+      { name: "에코프로비엠", code: "247540", symbol: "247540.KQ", market: "KOSDAQ", keywords: ["에코프로", "비엠", "ecopro"] },
+      { name: "Apple", code: "AAPL", symbol: "AAPL", market: "NASDAQ", keywords: ["애플", "apple", "aapl"] },
+      { name: "NVIDIA", code: "NVDA", symbol: "NVDA", market: "NASDAQ", keywords: ["엔비디아", "nvidia", "nvda", "엔비"] },
+      { name: "Tesla", code: "TSLA", symbol: "TSLA", market: "NASDAQ", keywords: ["테슬라", "tesla", "tsla"] },
+      { name: "Microsoft", code: "MSFT", symbol: "MSFT", market: "NASDAQ", keywords: ["마이크로소프트", "msft"] },
+      { name: "IonQ", code: "IONQ", symbol: "IONQ", market: "NYSE", keywords: ["아이온큐", "ionq", "ion"] }
+    ];
+
+    let currentStock = null;
+    let currentBaseStock = null;
+    let selectedSuggestion = null;
+    let suggestionTimer = null;
+    let currentInvestmentType = "short";
+
+    function setStatus(text) {
+      const datePill = document.querySelector(".date-pill");
+      if (datePill) datePill.innerHTML = "🕘 " + text + ' <span class="green-dot"></span>';
+    }
+
+    function setBadge(text) {
+      const badge = document.querySelector(".badge");
+      if (badge) badge.innerText = text;
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+    }
+
+    function normalize(text) {
+      return String(text || "").trim().toLowerCase().replace(/\s/g, "");
+    }
+
+    function getInvestmentTypeName(type) {
+      if (type === "short") return "단기 투자형";
+      if (type === "mid") return "중장기 투자형";
+      return "장기 투자형";
+    }
+
+    function getStrategyTypeName(type) {
+      if (type === "short") return "단기 모멘텀 대응";
+      if (type === "mid") return "균형형 리밸런싱";
+      return "장기 성장 누적";
+    }
+
+    function getAllocation(type) {
+      if (type === "short") return { stock: 30, etf: 20, cash: 50, etfName: "단기 테마/섹터 ETF" };
+      if (type === "mid") return { stock: 40, etf: 30, cash: 30, etfName: "글로벌 시장/섹터 ETF" };
+      return { stock: 50, etf: 35, cash: 15, etfName: "장기 성장 ETF" };
+    }
+
+    function selectInvestmentType(type) {
+      currentInvestmentType = type;
+
+      document.querySelectorAll(".type-btn").forEach(btn => btn.classList.remove("active"));
+      const selectedBtn = document.querySelector(`.type-btn[data-type="${type}"]`);
+      if (selectedBtn) selectedBtn.classList.add("active");
+
+      const desc = document.getElementById("investmentTypeDesc");
+
+      if (type === "short") {
+        desc.innerText = "단기 투자형은 최근 가격 흐름, 변동성, RSI, 단기 모멘텀을 중심으로 분석합니다.";
+      } else if (type === "mid") {
+        desc.innerText = "중장기 투자형은 3개월~1년 관점에서 추세 지속성, 이동평균, 리밸런싱을 중심으로 분석합니다.";
+      } else {
+        desc.innerText = "장기 투자형은 1년 이상 관점에서 기업 경쟁력, 성장성, 변동성 방어력, 장기 보유 적합성을 중심으로 분석합니다.";
+      }
+
+      if (currentBaseStock) {
+        const updated = applyInvestmentTypeAnalysis(currentBaseStock);
+        currentStock = updated;
+        updateStock(updated);
+
+        addBotMessage(
+          `<b>투자 유형이 변경되었습니다.</b><br>
+          현재 유형: <b>${getInvestmentTypeName(type)}</b><br>
+          ${escapeHtml(updated.diagnosis)}`
+        );
+      } else {
+        updateAllocationUI(null);
+      }
+    }
+
+    function resolveLocalSuggestions(keyword) {
+      const key = normalize(keyword);
+      if (!key) return [];
+
+      return LOCAL_STOCK_MASTER.filter(item => {
+        const targets = [item.name, item.code, item.symbol, item.market, ...item.keywords].map(normalize);
+        return targets.some(target => target.includes(key));
+      }).slice(0, 8);
+    }
+
+    async function updateSuggestions(keyword) {
+      const suggestionBox = document.getElementById("suggestionBox");
+      const local = resolveLocalSuggestions(keyword);
+
+      if (local.length === 0) {
+        suggestionBox.style.display = "none";
+        suggestionBox.innerHTML = "";
+        return;
+      }
+
+      suggestionBox.innerHTML = local.map((item, index) => `
+        <div class="suggestion-item" onclick="selectSuggestion(${index})">
+          <div class="suggest-name">${escapeHtml(item.name)}</div>
+          <div class="suggest-code">${escapeHtml(item.market)} · ${escapeHtml(item.code)} · ${escapeHtml(item.symbol)}</div>
+        </div>
+      `).join("");
+
+      window.__currentSuggestions = local;
+      suggestionBox.style.display = "block";
+    }
+
+    function selectSuggestion(index) {
+      const item = window.__currentSuggestions[index];
+      if (!item) return;
+
+      selectedSuggestion = item;
+      document.getElementById("searchInput").value = item.name + " (" + item.code + ")";
+      document.getElementById("suggestionBox").style.display = "none";
+      searchStock(item);
+    }
+
+    function resolveSymbolFromInput(input) {
+      if (selectedSuggestion) return selectedSuggestion;
+
+      const keyword = input.trim();
+      const local = resolveLocalSuggestions(keyword);
+
+      if (local.length > 0) return local[0];
+
+      if (/^[0-9]{6}$/.test(keyword)) {
+        return { name: keyword, code: keyword, symbol: keyword + ".KS", market: "KOSPI/KOSDAQ", keywords: [] };
+      }
+
+      return { name: keyword, code: keyword.toUpperCase(), symbol: keyword.toUpperCase(), market: "GLOBAL", keywords: [] };
+    }
+
+    async function fetchWithProxy(url) {
+      const targetUrl = "/api/proxy?url=" + encodeURIComponent(url);
+
+      const response = await fetch(targetUrl);
+
+      if (!response.ok) {
+        throw new Error("프록시 서버 오류: " + response.status);
+      }
+
+      return await response.json();
+    }
+
+    async function fetchYahooChart(symbol, range = "3mo", interval = "1d") {
+      const url =
+        "https://query1.finance.yahoo.com/v8/finance/chart/" +
+        encodeURIComponent(symbol) +
+        "?range=" + range +
+        "&interval=" + interval;
+
+      const json = await fetchWithProxy(url);
+
+      if (!json.chart || !json.chart.result || !json.chart.result[0]) {
+        throw new Error("차트 데이터를 불러오지 못했습니다.");
+      }
+
+      return json.chart.result[0];
+    }
+
+    async function searchYahooSymbol(keywordOrItem) {
+      let item;
+
+      if (typeof keywordOrItem === "object" && keywordOrItem.symbol) {
+        item = keywordOrItem;
+      } else {
+        item = resolveSymbolFromInput(keywordOrItem);
+      }
+
+      const chart = await fetchYahooChart(item.symbol);
+
+      return {
+        symbol: item.symbol,
+        shortName: item.name,
+        code: item.code,
+        exchange: item.market,
+        chart: chart
+      };
+    }
+
+    function analyzeChartData(searchInfo) {
+      const chart = searchInfo.chart;
+      const meta = chart.meta || {};
+      const quote = chart.indicators.quote[0];
+
+      const timestamps = chart.timestamp || [];
+      const closesRaw = quote.close || [];
+      const volumesRaw = quote.volume || [];
+
+      const closes = [];
+      const volumes = [];
+
+      for (let i = 0; i < closesRaw.length; i++) {
+        if (closesRaw[i] !== null && closesRaw[i] !== undefined) {
+          closes.push(closesRaw[i]);
+          volumes.push(volumesRaw[i] || 0);
+        }
+      }
+
+      if (closes.length < 2) throw new Error("분석 가능한 가격 데이터가 부족합니다.");
+
+      const current = closes[closes.length - 1];
+      const previous = closes[closes.length - 2];
+      const changeValue = current - previous;
+      const changeRate = (changeValue / previous) * 100;
+
+      const returns = [];
+      for (let i = 1; i < closes.length; i++) {
+        returns.push((closes[i] - closes[i - 1]) / closes[i - 1]);
+      }
+
+      const ma20 = movingAverage(closes, 20);
+      const ma60 = movingAverage(closes, 60);
+      const rsi = calculateRSI(closes, 14);
+      const volatility = stdDev(returns) * Math.sqrt(252);
+
+      let score = 50;
+
+      if (current > ma20) score += 12; else score -= 8;
+      if (ma20 > ma60) score += 12; else score -= 8;
+      if (changeRate > 0) score += 8; else score -= 8;
+
+      if (rsi >= 40 && rsi <= 65) score += 10;
+      else if (rsi > 75) score -= 12;
+      else if (rsi < 30) score -= 8;
+
+      if (volatility < 0.28) score += 8;
+      else if (volatility > 0.55) score -= 10;
+
+      score = Math.max(0, Math.min(100, Math.round(score)));
+
+      const lastTimestamp = timestamps[timestamps.length - 1];
+      const lastDate = lastTimestamp
+        ? new Date(lastTimestamp * 1000).toLocaleDateString("ko-KR")
+        : "최근 거래일";
+
+      const displayName = searchInfo.shortName || meta.shortName || meta.longName || searchInfo.symbol;
+
+      const currency = meta.currency || detectCurrency(searchInfo.symbol);
+
+      const exchangeName =
+        searchInfo.symbol.includes(".KS") ? "KOSPI" :
+        searchInfo.symbol.includes(".KQ") ? "KOSDAQ" :
+        searchInfo.exchange || meta.exchangeName || "GLOBAL";
+
+      return {
+        name: displayName,
+        symbol: searchInfo.symbol,
+        code: getDisplayCode(searchInfo.symbol),
+        exchange: exchangeName,
+        price: current,
+        previous,
+        changeValue,
+        changeRate,
+        volume: volumes[volumes.length - 1] || 0,
+        currency,
+        baseScore: score,
+        score,
+        rsi,
+        volatility,
+        date: lastDate,
+        prices: closes
+      };
+    }
+
+    function applyInvestmentTypeAnalysis(stock) {
+      const s = { ...stock };
+      let adjustedScore = s.baseScore;
+      let typeComment = "";
+      let expectedReturn = "연 6.0%";
+      let mdd = "-8.0% 관리 기준";
+
+      if (currentInvestmentType === "short") {
+        if (s.changeRate > 0) adjustedScore += 6; else adjustedScore -= 6;
+
+        if (s.rsi > 75) adjustedScore -= 14;
+        else if (s.rsi >= 45 && s.rsi <= 68) adjustedScore += 8;
+        else if (s.rsi < 30) adjustedScore -= 4;
+
+        if (s.volatility > 0.55) adjustedScore -= 12;
+
+        typeComment =
+          "단기 투자형 관점에서는 최근 등락률, RSI, 단기 변동성을 가장 중요하게 반영합니다. " +
+          "따라서 단기 급등 구간에서는 추격 매수보다 분할 진입과 손절 기준 설정이 중요합니다.";
+
+        expectedReturn = adjustedScore >= 75 ? "1개월 +4.5% 목표" :
+                         adjustedScore >= 60 ? "1개월 +2.5% 목표" :
+                         "단기 관망 권장";
+
+        mdd = adjustedScore >= 70 ? "-4.0% 손절 기준" : "-3.0% 손절 기준";
+      }
+
+      else if (currentInvestmentType === "mid") {
+        if (s.baseScore >= 65) adjustedScore += 6;
+        if (s.volatility > 0.60) adjustedScore -= 8;
+        if (s.rsi > 80) adjustedScore -= 8;
+        if (s.rsi >= 40 && s.rsi <= 70) adjustedScore += 5;
+
+        typeComment =
+          "중장기 투자형 관점에서는 3개월~1년 동안의 추세 지속성과 가격 안정성을 함께 봅니다. " +
+          "단기 변동성보다는 이동평균 추세, 업종 모멘텀, 포트폴리오 내 비중 조절이 중요합니다.";
+
+        expectedReturn = adjustedScore >= 75 ? "6개월 +10.0% 목표" :
+                         adjustedScore >= 60 ? "6개월 +6.0% 목표" :
+                         "중립 / 관망";
+
+        mdd = adjustedScore >= 70 ? "-8.0% 관리 기준" : "-10.0% 관리 기준";
+      }
+
+      else {
+        if (s.volatility < 0.45) adjustedScore += 8; else adjustedScore -= 4;
+        if (s.baseScore >= 60) adjustedScore += 5;
+        if (s.rsi > 80) adjustedScore -= 5;
+
+        typeComment =
+          "장기 투자형 관점에서는 단기 가격 변동보다 기업의 장기 성장성, 시장 지위, 산업 방향성, 변동성 방어력을 중요하게 봅니다. " +
+          "단기 조정은 분할 매수 기회가 될 수 있지만, 과도한 단일 종목 집중은 피하는 것이 좋습니다.";
+
+        expectedReturn = adjustedScore >= 75 ? "1년 이상 +18.0% 목표" :
+                         adjustedScore >= 60 ? "1년 이상 +12.0% 목표" :
+                         "장기 관찰 필요";
+
+        mdd = adjustedScore >= 70 ? "-15.0% 허용 범위" : "-18.0% 허용 범위";
+      }
+
+      adjustedScore = Math.max(0, Math.min(100, Math.round(adjustedScore)));
+
+      s.score = adjustedScore;
+      s.expectedReturn = expectedReturn;
+      s.mdd = mdd;
+
+      s.diagnosis =
+        `${s.name}은 ${getInvestmentTypeName(currentInvestmentType)} 기준으로 AI 퀀트 점수 ${s.score}점입니다. ` +
+        `최근 거래일 등락률은 ${s.changeRate.toFixed(2)}%, RSI는 ${s.rsi.toFixed(1)}, ` +
+        `연환산 변동성은 ${(s.volatility * 100).toFixed(1)}%입니다. ` + typeComment;
+
+      s.insight = makeTypeInsight(s);
+
+      return s;
+    }
+
+    function makeTypeInsight(stock) {
+      if (currentInvestmentType === "short") {
+        if (stock.score >= 75) return `${stock.name}은 단기 모멘텀이 양호합니다. 다만 추격 매수보다 분할 진입과 빠른 손절 기준 설정이 필요합니다.`;
+        if (stock.score >= 60) return `${stock.name}은 단기 관찰 구간입니다. 거래량 증가와 가격 지지 여부를 확인하는 전략이 적절합니다.`;
+        return `${stock.name}은 단기 투자 관점에서 변동성 부담이 큽니다. 무리한 진입보다는 관망이 적합합니다.`;
+      }
+
+      if (currentInvestmentType === "mid") {
+        if (stock.score >= 75) return `${stock.name}은 중장기 추세 관점에서 긍정적인 흐름을 보입니다. ETF와 함께 분산 편입하는 전략이 적절합니다.`;
+        if (stock.score >= 60) return `${stock.name}은 중장기 관찰 종목입니다. 분할 매수와 리밸런싱 전략을 함께 고려할 수 있습니다.`;
+        return `${stock.name}은 중장기 관점에서도 추세 확인이 더 필요합니다. 실적과 수급 개선 여부를 확인해야 합니다.`;
+      }
+
+      if (stock.score >= 75) return `${stock.name}은 장기 보유 관점에서 성장성과 안정성을 함께 검토할 수 있는 종목입니다.`;
+      if (stock.score >= 60) return `${stock.name}은 장기 관점에서 관심 종목으로 둘 수 있으나, 가격 조정 시 분할 접근이 적절합니다.`;
+      return `${stock.name}은 장기 투자 관점에서도 불확실성이 높습니다. 비중을 낮게 두고 추세 개선을 확인하는 것이 좋습니다.`;
+    }
+
+    function getDisplayCode(symbol) {
+      if (symbol.endsWith(".KS") || symbol.endsWith(".KQ")) {
+        return symbol.replace(".KS", "").replace(".KQ", "");
+      }
+
+      return symbol;
+    }
+
+    function detectCurrency(symbol) {
+      if (symbol.includes(".KS") || symbol.includes(".KQ")) return "KRW";
+      return "USD";
+    }
+
+    function formatPrice(value, currency) {
+      if (currency === "KRW") return Math.round(value).toLocaleString("ko-KR") + "원";
+
+      if (currency === "USD") {
+        return "$" + value.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      }
+
+      return value.toLocaleString() + " " + currency;
+    }
+
+    function formatChangeValue(value, currency) {
+      const sign = value >= 0 ? "+" : "";
+
+      if (currency === "KRW") return sign + Math.round(value).toLocaleString("ko-KR") + "원";
+
+      if (currency === "USD") {
+        return sign + "$" + value.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      }
+
+      return sign + value.toFixed(2) + " " + currency;
+    }
+
+    function formatVolume(value) {
+      if (!value) return "데이터 없음";
+      return Math.round(value).toLocaleString("ko-KR") + "주";
+    }
+
+    function movingAverage(values, period) {
+      const p = Math.min(values.length, period);
+      const sliced = values.slice(values.length - p);
+      return sliced.reduce((a, b) => a + b, 0) / sliced.length;
+    }
+
+    function stdDev(values) {
+      if (!values.length) return 0;
+
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      const variance = values.reduce((sum, value) => sum + Math.pow(value - avg, 2), 0) / values.length;
+
+      return Math.sqrt(variance);
+    }
+
+    function calculateRSI(values, period) {
+      if (values.length <= period) return 50;
+
+      const recent = values.slice(values.length - period - 1);
+
+      let gains = 0;
+      let losses = 0;
+
+      for (let i = 1; i < recent.length; i++) {
+        const diff = recent[i] - recent[i - 1];
+
+        if (diff >= 0) gains += diff;
+        else losses += Math.abs(diff);
+      }
+
+      if (losses === 0) return 100;
+
+      const rs = gains / losses;
+
+      return 100 - 100 / (1 + rs);
+    }
+
+    async function searchStock(itemFromSuggestion = null) {
+      const keyword = document.getElementById("searchInput").value.trim();
+
+      if (!keyword && !itemFromSuggestion) {
+        alert("종목명, 종목코드 또는 티커를 입력해 주세요.");
+        return;
+      }
+
+      document.getElementById("suggestionBox").style.display = "none";
+      setBadge("조회 중");
+      setStatus("데이터 조회 중");
+
+      const queryText = itemFromSuggestion ? itemFromSuggestion.name : keyword;
+
+      addBotMessage(`'${escapeHtml(queryText)}' 종목을 검색하고 있습니다. 선택한 투자 유형 기준으로 분석합니다.`);
+
+      try {
+        const searchInfo = await searchYahooSymbol(itemFromSuggestion || keyword);
+        const baseStock = analyzeChartData(searchInfo);
+        const stock = applyInvestmentTypeAnalysis(baseStock);
+
+        currentBaseStock = baseStock;
+        currentStock = stock;
+        selectedSuggestion = null;
+
+        updateStock(stock);
+
+        addBotMessage(
+          `<b>${escapeHtml(stock.name)}</b> 분석을 완료했습니다.<br>
+          투자 유형: <b>${getInvestmentTypeName(currentInvestmentType)}</b><br>
+          종목코드/티커: <b>${escapeHtml(stock.code)}</b><br>
+          시장: <b>${escapeHtml(stock.exchange)}</b><br>
+          최근 거래일: <b>${escapeHtml(stock.date)}</b><br>
+          현재가: <b>${escapeHtml(formatPrice(stock.price, stock.currency))}</b><br>
+          등락률: <b>${stock.changeRate.toFixed(2)}%</b><br>
+          AI 퀀트 점수: <b>${stock.score}점</b><br><br>
+          ${escapeHtml(stock.diagnosis)}`
+        );
+
+        setStatus(`${stock.date} 마감 데이터 반영`);
+        setBadge("업데이트됨");
+      }
+
+      catch (error) {
+        console.error(error);
+        setStatus("데이터 조회 실패");
+        setBadge("오류");
+
+        addBotMessage(
+          `검색에 실패했습니다.<br>
+          Python 서버가 실행 중인지, 그리고 HTML 파일을 더블클릭이 아니라 http://127.0.0.1:5000 으로 접속했는지 확인해 주세요.<br><br>
+          국내 주식은 <b>6자리 종목코드</b>로 검색해 보세요. 예: 000660, 005930, 012450<br>
+          해외 주식은 <b>티커</b>로 검색해 보세요. 예: AAPL, NVDA, TSLA, MSFT, IONQ`
+        );
+      }
+    }
+
+    function updateStock(stock) {
+      document.getElementById("stockName").innerText = stock.name;
+      document.getElementById("stockCode").innerText = "(" + stock.code + " / " + stock.symbol + ")";
+      document.getElementById("stockPrice").innerText = formatPrice(stock.price, stock.currency);
+
+      const changeText =
+        formatChangeValue(stock.changeValue, stock.currency) +
+        " (" + (stock.changeRate >= 0 ? "+" : "") + stock.changeRate.toFixed(2) + "%)";
+
+      const changeEl = document.getElementById("stockChange");
+      changeEl.innerText = changeText;
+      changeEl.className = stock.changeRate >= 0 ? "change up" : "change down";
+
+      document.getElementById("volume").innerText = "거래량 " + formatVolume(stock.volume);
+      document.getElementById("marketCap").innerText = "시장 " + stock.exchange + " · 코드 " + stock.code;
+      document.getElementById("diagnosisText").innerText = stock.diagnosis;
+      document.getElementById("insightText").innerText = stock.insight;
+      document.getElementById("allocStockName").innerText = stock.name + " (핵심 분석 종목)";
+      document.getElementById("expectedReturn").innerText = stock.expectedReturn;
+      document.getElementById("mdd").innerText = stock.mdd;
+      document.getElementById("confidence").innerText = stock.score + " / 100";
+      document.getElementById("selectedTypeLabel").innerText = getInvestmentTypeName(currentInvestmentType);
+      document.getElementById("strategyType").innerText = getStrategyTypeName(currentInvestmentType);
+
+      document.getElementById("rightComment").innerText =
+        `${stock.name}은 ${getInvestmentTypeName(currentInvestmentType)} 기준 AI 퀀트 점수 ${stock.score}점으로 평가됩니다. ` +
+        `선택한 투자 기간에 맞춰 목표수익률, 손절/관리 기준, 포트폴리오 비중을 다르게 적용하는 전략이 적합합니다.`;
+
+      updateAllocationUI(stock);
+      drawMiniChartFromPrices(stock.prices);
+    }
+
+    function updateAllocationUI(stock) {
+      const alloc = getAllocation(currentInvestmentType);
+
+      document.getElementById("allocStockPct").innerText = alloc.stock + "%";
+      document.getElementById("allocEtfPct").innerText = alloc.etf + "%";
+      document.getElementById("allocCashPct").innerText = alloc.cash + "%";
+
+      document.getElementById("allocStockBar").style.width = alloc.stock + "%";
+      document.getElementById("allocEtfBar").style.width = alloc.etf + "%";
+      document.getElementById("allocCashBar").style.width = alloc.cash + "%";
+
+      document.getElementById("allocEtfName").innerText = alloc.etfName;
+      document.getElementById("selectedTypeLabel").innerText = getInvestmentTypeName(currentInvestmentType);
+      document.getElementById("strategyType").innerText = getStrategyTypeName(currentInvestmentType);
+
+      if (!stock) document.getElementById("allocStockName").innerText = "핵심 분석 종목";
+    }
+
+    function drawMiniChartFromPrices(prices) {
+      const visible = prices.slice(-30);
+
+      if (visible.length < 2) return;
+
+      const width = 320;
+      const height = 90;
+      const padding = 10;
+
+      const min = Math.min(...visible);
+      const max = Math.max(...visible);
+      const range = max - min || 1;
+      const step = width / (visible.length - 1);
+
+      let line = "";
+      let area = "";
+
+      visible.forEach((price, i) => {
+        const x = i * step;
+        const y = padding + (height - padding * 2) - ((price - min) / range) * (height - padding * 2);
+
+        if (i === 0) {
+          line += `M${x},${y}`;
+          area += `M${x},${y}`;
+        } else {
+          line += ` L${x},${y}`;
+          area += ` L${x},${y}`;
+        }
+      });
+
+      area += ` L${width},${height} L0,${height} Z`;
+
+      document.getElementById("chartLine").setAttribute("d", line);
+      document.getElementById("chartArea").setAttribute("d", area);
+    }
+
+    async function updateMarketIndicators() {
+      try {
+        const response = await fetch("/api/market");
+
+        if (!response.ok) {
+          throw new Error("시장 지표 API 오류");
+        }
+
+        const data = await response.json();
+
+        if (data.kospi) {
+          const kospi = data.kospi;
+
+          document.getElementById("kospiValue").innerText = kospi.current.toLocaleString("ko-KR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+
+          const kospiChangeEl = document.getElementById("kospiChange");
+
+          kospiChangeEl.innerText =
+            `${kospi.change >= 0 ? "+" : ""}${kospi.change.toFixed(2)} ` +
+            `(${kospi.changeRate >= 0 ? "+" : ""}${kospi.changeRate.toFixed(2)}%)`;
+
+          kospiChangeEl.className = kospi.changeRate >= 0 ? "change up" : "change down";
+        } else {
+          document.getElementById("kospiValue").innerText = "조회 실패";
+          document.getElementById("kospiChange").innerText = "-";
+        }
+
+        if (data.usdkrw) {
+          const fx = data.usdkrw;
+
+          document.getElementById("fxValue").innerText = fx.current.toLocaleString("ko-KR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) + "원";
+
+          const fxChangeEl = document.getElementById("fxChange");
+
+          fxChangeEl.innerText =
+            `${fx.change >= 0 ? "+" : ""}${fx.change.toFixed(2)} ` +
+            `(${fx.changeRate >= 0 ? "+" : ""}${fx.changeRate.toFixed(2)}%)`;
+
+          fxChangeEl.className = fx.changeRate >= 0 ? "change up" : "change down";
+
+          updateMarketBrief(fx.changeRate);
+        } else {
+          document.getElementById("fxValue").innerText = "조회 실패";
+          document.getElementById("fxChange").innerText = "-";
+        }
+      }
+
+      catch (error) {
+        console.error(error);
+
+        document.getElementById("kospiValue").innerText = "조회 실패";
+        document.getElementById("kospiChange").innerText = "-";
+
+        document.getElementById("fxValue").innerText = "조회 실패";
+        document.getElementById("fxChange").innerText = "-";
+      }
+    }
+
+    function updateMarketBrief(fxChangeRate) {
+      const brief = document.getElementById("marketBrief");
+
+      if (fxChangeRate > 0.4) {
+        brief.innerText = "원/달러 환율 상승으로 외국인 수급과 성장주 변동성이 확대될 수 있습니다. 현금 비중과 분할 매수 전략을 권장합니다.";
+      } else if (fxChangeRate < -0.4) {
+        brief.innerText = "원/달러 환율 하락은 국내 증시 수급에 긍정적으로 작용할 수 있습니다. 다만 업종별 차별화 흐름을 확인해야 합니다.";
+      } else {
+        brief.innerText = "환율 변동은 제한적입니다. 종목별 실적, 수급, 모멘텀 중심의 선별적 접근이 유효합니다.";
+      }
+    }
+
+    function getPortfolioText(stock) {
+      if (currentInvestmentType === "short") {
+        return `
+          - ${escapeHtml(stock.name)}: 30%<br>
+          - 단기 테마/섹터 ETF: 20%<br>
+          - 현금성 자산: 50%<br><br>
+          단기 투자형은 변동성 대응이 중요하므로 현금 비중을 높게 유지합니다.<br>
+        `;
+      }
+
+      if (currentInvestmentType === "mid") {
+        return `
+          - ${escapeHtml(stock.name)}: 40%<br>
+          - 글로벌 시장/섹터 ETF: 30%<br>
+          - 현금성 자산: 30%<br><br>
+          중장기 투자형은 성장성과 변동성 방어를 함께 고려한 균형형 배분입니다.<br>
+        `;
+      }
+
+      return `
+        - ${escapeHtml(stock.name)}: 50%<br>
+        - 장기 성장 ETF: 35%<br>
+        - 현금성 자산: 15%<br><br>
+        장기 투자형은 우량 자산의 장기 보유 비중을 높이고 단기 현금 비중은 낮게 설정합니다.<br>
+      `;
+    }
+
+    function addUserMessage(text) {
+      const chatBody = document.getElementById("chatBody");
+      const row = document.createElement("div");
+
+      row.className = "message-row user";
+
+      row.innerHTML = `
+        <div>
+          <div class="bubble">${escapeHtml(text)}</div>
+          <div class="time" style="text-align:right;">방금 전 ✓✓</div>
+        </div>
+      `;
+
+      chatBody.appendChild(row);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function addBotMessage(html) {
+      const chatBody = document.getElementById("chatBody");
+      const row = document.createElement("div");
+
+      row.className = "message-row";
+
+      row.innerHTML = `
+        <div class="bot-icon">🤖</div>
+        <div>
+          <div class="bubble">${html}</div>
+          <div class="time">방금 전</div>
+        </div>
+      `;
+
+      chatBody.appendChild(row);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const text = input.value.trim();
+
+      if (!text) return;
+
+      addUserMessage(text);
+      input.value = "";
+
+      if (!currentStock) {
+        addBotMessage("먼저 좌측 검색창에서 분석할 종목을 조회해 주세요.");
+        return;
+      }
+
+      const stock = currentStock;
+      let answer = "";
+
+      if (text.includes("리스크") || text.includes("위험")) {
+        answer = `
+          <b>${escapeHtml(stock.name)} 리스크 분석</b><br>
+          투자 유형: <b>${getInvestmentTypeName(currentInvestmentType)}</b><br>
+          1. 최근 거래일 기준 변동성: ${(stock.volatility * 100).toFixed(1)}%<br>
+          2. RSI: ${stock.rsi.toFixed(1)}<br>
+          3. 단기 등락률: ${stock.changeRate.toFixed(2)}%<br>
+          4. 관리 기준: ${escapeHtml(stock.mdd)}<br><br>
+          Agent 제안: 선택한 투자 유형에 맞춰 진입 비중과 손절/관리 기준을 다르게 적용해야 합니다.
+        `;
+      }
+
+      else if (text.includes("포트폴리오") || text.includes("배분") || text.includes("다변화") || text.includes("리밸런싱")) {
+        answer = `
+          <b>${escapeHtml(stock.name)} 기반 포트폴리오 제안</b><br>
+          투자 유형: <b>${getInvestmentTypeName(currentInvestmentType)}</b><br><br>
+          ${getPortfolioText(stock)}
+          기대수익률은 ${escapeHtml(stock.expectedReturn)}, 최대 낙폭 우려는 ${escapeHtml(stock.mdd)}로 시뮬레이션됩니다.
+        `;
+      }
+
+      else if (text.includes("매수") || text.includes("타이밍")) {
+        answer = `
+          <b>${escapeHtml(stock.name)} 매수 타이밍 분석</b><br>
+          투자 유형: <b>${getInvestmentTypeName(currentInvestmentType)}</b><br>
+          현재 AI 점수는 ${stock.score}점입니다.<br>
+          최근 등락률은 ${stock.changeRate.toFixed(2)}%, RSI는 ${stock.rsi.toFixed(1)}입니다.<br><br>
+          ${currentInvestmentType === "short"
+            ? "단기 투자형에서는 일괄 매수보다 빠른 손절 기준을 둔 분할 진입이 적절합니다."
+            : currentInvestmentType === "mid"
+              ? "중장기 투자형에서는 조정 시 분할 매수와 월간 리밸런싱 전략이 적절합니다."
+              : "장기 투자형에서는 가격 변동보다 기업 경쟁력과 산업 성장성을 우선 확인하는 것이 적절합니다."}
+        `;
+      }
+
+      else {
+        answer = `
+          <b>${escapeHtml(stock.name)} 종합 의견</b><br>
+          투자 유형: <b>${getInvestmentTypeName(currentInvestmentType)}</b><br>
+          ${escapeHtml(stock.diagnosis)}<br><br>
+          현재 전략은 선택한 투자 기간에 맞춰 비중과 리스크 기준을 조절하는 방식이 적합합니다.
+        `;
+      }
+
+      setTimeout(() => addBotMessage(answer), 350);
+    }
+
+    function quickAsk(text) {
+      document.getElementById("chatInput").value = text;
+      sendMessage();
+    }
+
+    function makeStrategy() {
+      if (!currentStock) {
+        addBotMessage("먼저 종목을 검색해 주세요.");
+        return;
+      }
+
+      addUserMessage(currentStock.name + " 기반 투자 전략을 만들어줘.");
+
+      setTimeout(() => {
+        addBotMessage(`
+          <b>${escapeHtml(currentStock.name)} 기반 전략</b><br>
+          투자 유형: <b>${getInvestmentTypeName(currentInvestmentType)}</b><br>
+          현재 AI 퀀트 점수는 ${currentStock.score}점입니다.<br><br>
+          ${getPortfolioText(currentStock)}
+          목표 기대수익률은 ${escapeHtml(currentStock.expectedReturn)}, 최대 낙폭 기준은 ${escapeHtml(currentStock.mdd)}입니다.
+        `);
+      }, 350);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", function(e) {
+      selectedSuggestion = null;
+
+      const keyword = e.target.value.trim();
+
+      clearTimeout(suggestionTimer);
+
+      suggestionTimer = setTimeout(() => updateSuggestions(keyword), 280);
+    });
+
+    document.getElementById("searchInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        document.getElementById("suggestionBox").style.display = "none";
+        searchStock();
+      }
+    });
+
+    document.getElementById("chatInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    document.addEventListener("click", function(e) {
+      const wrap = document.querySelector(".search-wrap");
+
+      if (!wrap.contains(e.target)) {
+        document.getElementById("suggestionBox").style.display = "none";
+      }
+    });
+
+    setStatus("최근 거래일 데이터 조회 가능");
+    updateAllocationUI(null);
+    updateMarketIndicators();
+
+    setTimeout(() => searchStock(), 700);
+  </script>
+</body>
+</html>
