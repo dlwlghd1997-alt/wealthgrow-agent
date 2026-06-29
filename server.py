@@ -1,7 +1,10 @@
 from flask import Flask, request, send_from_directory, Response, jsonify
 import requests
+import os
 
 app = Flask(__name__, static_folder=".")
+
+HTML_FILE = "wealthgrow_agent.html"
 
 ALLOWED_DOMAINS = [
     "https://query1.finance.yahoo.com",
@@ -11,12 +14,12 @@ ALLOWED_DOMAINS = [
 
 @app.route("/")
 def index():
-    return send_from_directory(".", "wealthgrow_agent.html")
+    return send_from_directory(".", HTML_FILE)
 
 
 @app.route("/wealthgrow_agent.html")
 def html():
-    return send_from_directory(".", "wealthgrow_agent.html")
+    return send_from_directory(".", HTML_FILE)
 
 
 @app.route("/api/proxy")
@@ -53,7 +56,10 @@ def market():
         "usdkrw": None
     }
 
+    # KOSPI 후보 심볼
     kospi_candidates = ["^KS11", "KS11.KS"]
+
+    # 원/달러 환율 후보 심볼
     fx_candidates = ["KRW=X", "USDKRW=X"]
 
     for symbol in kospi_candidates:
@@ -85,6 +91,7 @@ def get_yahoo_chart_simple(symbol):
             return None
 
         json_data = response.json()
+
         chart = json_data.get("chart", {}).get("result", [])
 
         if not chart:
@@ -118,5 +125,24 @@ def get_yahoo_chart_simple(symbol):
         return None
 
 
+@app.route("/favicon.ico")
+def favicon():
+    return Response(status=204)
+
+
+@app.route("/<path:path>")
+def catch_all(path):
+    """
+    Render 배포 후 모바일/다른 브라우저에서 다른 경로로 접근해도
+    Not Found가 뜨지 않고 기본 AI Agent 화면을 보여주기 위한 처리
+    """
+
+    if path.startswith("api/"):
+        return Response("API Not Found", status=404)
+
+    return send_from_directory(".", HTML_FILE)
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
