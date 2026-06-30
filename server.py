@@ -9,19 +9,69 @@ app = Flask(__name__, static_folder=".")
 
 HTML_FILE = "wealthgrow_agent.html"
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0"
+}
+
 ALLOWED_DOMAINS = [
     "https://query1.finance.yahoo.com",
     "https://query2.finance.yahoo.com"
 ]
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0"
-}
-
 TOP5_CACHE = {
     "date": None,
     "data": None
 }
+
+SEARCH_MASTER = [
+    {"name": "SK하이닉스", "code": "000660", "symbol": "000660.KS", "market": "KOSPI", "keywords": ["하이닉스", "하이", "sk", "hynix", "skhynix"]},
+    {"name": "삼성전자", "code": "005930", "symbol": "005930.KS", "market": "KOSPI", "keywords": ["삼성", "삼전", "samsung"]},
+    {"name": "삼성SDI", "code": "006400", "symbol": "006400.KS", "market": "KOSPI", "keywords": ["삼성sdi", "sdi"]},
+    {"name": "LG에너지솔루션", "code": "373220", "symbol": "373220.KS", "market": "KOSPI", "keywords": ["lg엔솔", "엔솔", "lg energy"]},
+    {"name": "LG화학", "code": "051910", "symbol": "051910.KS", "market": "KOSPI", "keywords": ["lg화학", "엘지화학"]},
+    {"name": "현대차", "code": "005380", "symbol": "005380.KS", "market": "KOSPI", "keywords": ["현대", "현대자동차", "hyundai"]},
+    {"name": "기아", "code": "000270", "symbol": "000270.KS", "market": "KOSPI", "keywords": ["kia"]},
+    {"name": "NAVER", "code": "035420", "symbol": "035420.KS", "market": "KOSPI", "keywords": ["네이버", "naver"]},
+    {"name": "카카오", "code": "035720", "symbol": "035720.KS", "market": "KOSPI", "keywords": ["kakao"]},
+    {"name": "한화에어로스페이스", "code": "012450", "symbol": "012450.KS", "market": "KOSPI", "keywords": ["한화", "한화에어로", "hanwha", "aerospace"]},
+    {"name": "한미반도체", "code": "042700", "symbol": "042700.KS", "market": "KOSPI", "keywords": ["한미", "hanmi"]},
+    {"name": "두산에너빌리티", "code": "034020", "symbol": "034020.KS", "market": "KOSPI", "keywords": ["두산", "두산에너", "doosan"]},
+    {"name": "포스코퓨처엠", "code": "003670", "symbol": "003670.KS", "market": "KOSPI", "keywords": ["포스코퓨처엠", "퓨처엠", "posco"]},
+    {"name": "셀트리온", "code": "068270", "symbol": "068270.KS", "market": "KOSPI", "keywords": ["셀트", "celltrion"]},
+    {"name": "삼성바이오로직스", "code": "207940", "symbol": "207940.KS", "market": "KOSPI", "keywords": ["삼바", "삼성바이오", "bio"]},
+    {"name": "에코프로비엠", "code": "247540", "symbol": "247540.KQ", "market": "KOSDAQ", "keywords": ["에코프로", "비엠", "ecopro"]},
+    {"name": "에코프로", "code": "086520", "symbol": "086520.KQ", "market": "KOSDAQ", "keywords": ["ecopro"]},
+    {"name": "HLB", "code": "028300", "symbol": "028300.KQ", "market": "KOSDAQ", "keywords": ["에이치엘비", "hlb"]},
+    {"name": "알테오젠", "code": "196170", "symbol": "196170.KQ", "market": "KOSDAQ", "keywords": ["alteogen"]},
+    {"name": "레인보우로보틱스", "code": "277810", "symbol": "277810.KQ", "market": "KOSDAQ", "keywords": ["레인보우", "로보틱스", "robotics"]},
+
+    {"name": "Apple", "code": "AAPL", "symbol": "AAPL", "market": "NASDAQ", "keywords": ["애플", "apple", "aapl"]},
+    {"name": "NVIDIA", "code": "NVDA", "symbol": "NVDA", "market": "NASDAQ", "keywords": ["엔비디아", "nvidia", "nvda", "엔비"]},
+    {"name": "Tesla", "code": "TSLA", "symbol": "TSLA", "market": "NASDAQ", "keywords": ["테슬라", "tesla", "tsla"]},
+    {"name": "Microsoft", "code": "MSFT", "symbol": "MSFT", "market": "NASDAQ", "keywords": ["마이크로소프트", "msft"]},
+    {"name": "Amazon", "code": "AMZN", "symbol": "AMZN", "market": "NASDAQ", "keywords": ["아마존", "amazon"]},
+    {"name": "Meta Platforms", "code": "META", "symbol": "META", "market": "NASDAQ", "keywords": ["메타", "페이스북", "facebook"]},
+    {"name": "Google Alphabet A", "code": "GOOGL", "symbol": "GOOGL", "market": "NASDAQ", "keywords": ["구글", "알파벳", "google", "alphabet"]},
+    {"name": "Broadcom", "code": "AVGO", "symbol": "AVGO", "market": "NASDAQ", "keywords": ["브로드컴", "broadcom"]},
+    {"name": "AMD", "code": "AMD", "symbol": "AMD", "market": "NASDAQ", "keywords": ["암드", "amd"]},
+    {"name": "Intel", "code": "INTC", "symbol": "INTC", "market": "NASDAQ", "keywords": ["인텔", "intel"]},
+    {"name": "Micron", "code": "MU", "symbol": "MU", "market": "NASDAQ", "keywords": ["마이크론", "micron"]},
+    {"name": "Palantir", "code": "PLTR", "symbol": "PLTR", "market": "NASDAQ", "keywords": ["팔란티어", "palantir"]},
+    {"name": "IonQ", "code": "IONQ", "symbol": "IONQ", "market": "NYSE", "keywords": ["아이온큐", "ionq", "ion"]},
+
+    {"name": "SPDR S&P 500 ETF", "code": "SPY", "symbol": "SPY", "market": "NYSEARCA", "keywords": ["s&p500", "sp500", "snp500", "spy", "에스앤피", "에센피", "s&p 500"]},
+    {"name": "Vanguard S&P 500 ETF", "code": "VOO", "symbol": "VOO", "market": "NYSEARCA", "keywords": ["s&p500", "sp500", "voo", "뱅가드", "s&p 500"]},
+    {"name": "iShares Core S&P 500 ETF", "code": "IVV", "symbol": "IVV", "market": "NYSEARCA", "keywords": ["s&p500", "sp500", "ivv", "아이셰어즈", "s&p 500"]},
+    {"name": "Invesco QQQ Trust", "code": "QQQ", "symbol": "QQQ", "market": "NASDAQ", "keywords": ["나스닥100", "nasdaq100", "qqq", "나스닥 etf"]},
+    {"name": "Invesco NASDAQ 100 ETF", "code": "QQQM", "symbol": "QQQM", "market": "NASDAQ", "keywords": ["나스닥100", "nasdaq100", "qqqm"]},
+    {"name": "SPDR Dow Jones ETF", "code": "DIA", "symbol": "DIA", "market": "NYSEARCA", "keywords": ["다우", "dow", "dia"]},
+    {"name": "iShares Russell 2000 ETF", "code": "IWM", "symbol": "IWM", "market": "NYSEARCA", "keywords": ["러셀2000", "russell", "iwm"]},
+    {"name": "Schwab US Dividend Equity ETF", "code": "SCHD", "symbol": "SCHD", "market": "NYSEARCA", "keywords": ["schd", "배당", "dividend"]},
+    {"name": "Direxion Daily Semiconductor Bull 3X", "code": "SOXL", "symbol": "SOXL", "market": "NYSEARCA", "keywords": ["soxl", "반도체3배", "semiconductor"]},
+    {"name": "iShares Semiconductor ETF", "code": "SOXX", "symbol": "SOXX", "market": "NASDAQ", "keywords": ["soxx", "반도체", "semiconductor"]},
+    {"name": "VanEck Semiconductor ETF", "code": "SMH", "symbol": "SMH", "market": "NASDAQ", "keywords": ["smh", "반도체", "엔비디아 etf"]},
+    {"name": "ARK Innovation ETF", "code": "ARKK", "symbol": "ARKK", "market": "NYSEARCA", "keywords": ["arkk", "아크", "innovation"]},
+]
 
 TOP5_UNIVERSE = [
     {"name": "SK하이닉스", "code": "000660", "symbol": "000660.KS", "market": "KOSPI"},
@@ -37,7 +87,9 @@ TOP5_UNIVERSE = [
     {"name": "NVIDIA", "code": "NVDA", "symbol": "NVDA", "market": "NASDAQ"},
     {"name": "Tesla", "code": "TSLA", "symbol": "TSLA", "market": "NASDAQ"},
     {"name": "Microsoft", "code": "MSFT", "symbol": "MSFT", "market": "NASDAQ"},
-    {"name": "IonQ", "code": "IONQ", "symbol": "IONQ", "market": "NYSE"}
+    {"name": "SPDR S&P 500 ETF", "code": "SPY", "symbol": "SPY", "market": "NYSEARCA"},
+    {"name": "Invesco QQQ Trust", "code": "QQQ", "symbol": "QQQ", "market": "NASDAQ"},
+    {"name": "VanEck Semiconductor ETF", "code": "SMH", "symbol": "SMH", "market": "NASDAQ"},
 ]
 
 
@@ -72,6 +124,30 @@ def proxy():
 
     except Exception as e:
         return Response(str(e), status=500)
+
+
+@app.route("/api/search")
+def search_stocks():
+    keyword = request.args.get("q", "").strip()
+
+    if not keyword:
+        return jsonify({"results": []})
+
+    results = []
+
+    results.extend(search_from_master(keyword))
+
+    if is_six_digit_code(keyword):
+        results.extend(search_korean_code(keyword))
+
+    results.extend(search_from_yahoo(keyword))
+
+    cleaned = deduplicate_results(results)
+
+    return jsonify({
+        "query": keyword,
+        "results": cleaned[:15]
+    })
 
 
 @app.route("/api/market")
@@ -141,6 +217,160 @@ def top5():
     TOP5_CACHE["data"] = result
 
     return jsonify(result)
+
+
+def normalize_text(text):
+    return str(text or "").lower().replace(" ", "").replace("-", "").replace("_", "").replace("&", "")
+
+
+def is_six_digit_code(text):
+    return text.isdigit() and len(text) == 6
+
+
+def search_from_master(keyword):
+    key = normalize_text(keyword)
+    result = []
+
+    for item in SEARCH_MASTER:
+        targets = [
+            item.get("name"),
+            item.get("code"),
+            item.get("symbol"),
+            item.get("market"),
+            *item.get("keywords", [])
+        ]
+
+        targets = [normalize_text(v) for v in targets]
+
+        if any(key in target or target in key for target in targets):
+            result.append({
+                "name": item["name"],
+                "code": item["code"],
+                "symbol": item["symbol"],
+                "market": item["market"],
+                "source": "master"
+            })
+
+    return result
+
+
+def search_korean_code(code):
+    result = []
+
+    candidates = [
+        {"symbol": f"{code}.KS", "market": "KOSPI"},
+        {"symbol": f"{code}.KQ", "market": "KOSDAQ"}
+    ]
+
+    for candidate in candidates:
+        symbol = candidate["symbol"]
+
+        if verify_symbol_has_chart(symbol):
+            result.append({
+                "name": code,
+                "code": code,
+                "symbol": symbol,
+                "market": candidate["market"],
+                "source": "korean-code"
+            })
+
+    return result
+
+
+def search_from_yahoo(keyword):
+    result = []
+
+    try:
+        encoded = quote(keyword, safe="")
+        url = f"https://query1.finance.yahoo.com/v1/finance/search?q={encoded}&quotesCount=12&newsCount=0"
+
+        response = requests.get(url, headers=HEADERS, timeout=12)
+
+        if response.status_code != 200:
+            return result
+
+        data = response.json()
+        quotes = data.get("quotes", [])
+
+        for q in quotes:
+            symbol = q.get("symbol")
+            name = q.get("shortname") or q.get("longname") or q.get("symbol")
+            exchange = q.get("exchDisp") or q.get("exchange") or "GLOBAL"
+            quote_type = q.get("quoteType") or ""
+
+            if not symbol:
+                continue
+
+            if not is_allowed_quote_type(quote_type):
+                continue
+
+            result.append({
+                "name": name,
+                "code": symbol.replace(".KS", "").replace(".KQ", ""),
+                "symbol": symbol,
+                "market": exchange,
+                "source": "yahoo"
+            })
+
+    except Exception:
+        return result
+
+    return result
+
+
+def is_allowed_quote_type(quote_type):
+    allowed = [
+        "EQUITY",
+        "ETF",
+        "INDEX",
+        "MUTUALFUND"
+    ]
+
+    if not quote_type:
+        return True
+
+    return quote_type.upper() in allowed
+
+
+def deduplicate_results(results):
+    seen = set()
+    cleaned = []
+
+    for item in results:
+        symbol = item.get("symbol")
+
+        if not symbol:
+            continue
+
+        if symbol in seen:
+            continue
+
+        seen.add(symbol)
+
+        cleaned.append({
+            "name": item.get("name") or symbol,
+            "code": item.get("code") or symbol,
+            "symbol": symbol,
+            "market": item.get("market") or "GLOBAL",
+            "source": item.get("source") or "unknown"
+        })
+
+    return cleaned
+
+
+def verify_symbol_has_chart(symbol):
+    try:
+        chart = fetch_chart(symbol, range_value="5d", interval="1d")
+
+        if not chart:
+            return False
+
+        prices = extract_prices(chart)
+
+        return len(prices) >= 2
+
+    except Exception:
+        return False
 
 
 def analyze_top5_stock(stock):
@@ -313,13 +543,7 @@ def fetch_fundamentals(symbol):
             per = extract_raw(default_key.get("trailingPE"))
 
         pbr = extract_raw(default_key.get("priceToBook"))
-
-        debt_to_equity = extract_raw(financial_data.get("debtToEquity"))
-
-        if debt_to_equity is not None:
-            debt_ratio = debt_to_equity
-        else:
-            debt_ratio = None
+        debt_ratio = extract_raw(financial_data.get("debtToEquity"))
 
         eps_growth = None
         trend = earnings_trend.get("trend", [])
