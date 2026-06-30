@@ -52,7 +52,6 @@
     }
 
     .brand-subtitle { margin-top: 3px; font-size: 13px; color: #9fb0ca; }
-
     .top-right { display: flex; align-items: center; gap: 14px; }
 
     .date-pill {
@@ -164,7 +163,7 @@
       top: 43px;
       left: 0;
       right: 78px;
-      max-height: 270px;
+      max-height: 300px;
       overflow-y: auto;
       z-index: 99;
       background: #0f1c31;
@@ -594,7 +593,7 @@
       <div class="brand">
         <div class="logo">🤖</div>
         <div>
-          <div class="brand-title">WealthGrow <span class="version">AI Agent v4.3</span></div>
+          <div class="brand-title">WealthGrow <span class="version">AI Agent v4.4</span></div>
           <div class="brand-subtitle">개인의 일상과 경제적 성장을 돕는 투자 분석형 AI 자산 관리자</div>
         </div>
       </div>
@@ -608,18 +607,18 @@
     <main class="layout">
       <aside class="panel left">
         <div class="card">
-          <h3 class="section-title"><span class="blue">🔍</span> AI 기업/종목 실시간 분석</h3>
+          <h3 class="section-title"><span class="blue">🔍</span> AI 기업/종목/ETF 실시간 분석</h3>
 
           <div class="search-wrap">
             <div class="search-area">
-              <input id="searchInput" placeholder="예: 하이닉스, 삼성, 000660, NVDA, Tesla" value="SK하이닉스" autocomplete="off" />
+              <input id="searchInput" placeholder="예: 하이닉스, 000660, NVDA, SPY, S&P500, QQQ, SCHD" value="SK하이닉스" autocomplete="off" />
               <button class="search-btn" onclick="searchStock()">조회</button>
             </div>
             <div class="suggestion-box" id="suggestionBox"></div>
           </div>
 
           <div class="search-help">
-            종목명을 일부만 입력해도 선택할 수 있습니다. 예: “하이”, “삼성”, “한화”, “엔비”, “Tesla”
+            국내 종목은 6자리 코드, 미국 주식/ETF는 티커 또는 이름으로 검색 가능합니다. 예: 005930, 247540, NVDA, SPY, VOO, QQQ, SOXX
           </div>
 
           <div class="card" style="margin-bottom:14px;">
@@ -653,7 +652,7 @@
             <div class="diagnosis">
               <b class="blue">📡 Agent 진단:</b><br />
               <span id="diagnosisText">
-                좌측 검색창에 종목명, 국내 6자리 종목코드 또는 해외 티커를 입력하면 최근 거래일 기준 가격과 AI 분석 결과를 제공합니다.
+                종목명, 국내 6자리 종목코드, 미국 티커, ETF 티커를 입력하면 최근 거래일 기준 가격과 AI 분석 결과를 제공합니다.
               </span>
             </div>
 
@@ -747,8 +746,8 @@
             <div>
               <div class="bubble">
                 안녕하세요! <b>WealthGrow AI Agent</b>입니다.<br>
-                이제 질문 의도를 분석해서 매수/매도, 손절가, 목표가, 보유 종목 수익률, 포트폴리오까지 더 구체적으로 답변합니다.<br><br>
-                예시: “지금 사도 돼?”, “얼마나 추가 매수?”, “손절가는?”, “왜 관망이야?”, “내 보유 종목 수익률 알려줘”
+                종목, ETF, 국내 6자리 코드, 미국 티커까지 검색 범위를 확장했습니다.<br><br>
+                예시: “SPY 분석해줘”, “S&P500 ETF 사도 돼?”, “지금 사도 돼?”, “손절가는?”, “내 보유 종목 수익률 알려줘”
               </div>
               <div class="time">시스템 안내</div>
             </div>
@@ -875,7 +874,12 @@
       { name:"NVIDIA", code:"NVDA", symbol:"NVDA", market:"NASDAQ", keywords:["엔비디아","nvidia","nvda","엔비"] },
       { name:"Tesla", code:"TSLA", symbol:"TSLA", market:"NASDAQ", keywords:["테슬라","tesla","tsla"] },
       { name:"Microsoft", code:"MSFT", symbol:"MSFT", market:"NASDAQ", keywords:["마이크로소프트","msft"] },
-      { name:"IonQ", code:"IONQ", symbol:"IONQ", market:"NYSE", keywords:["아이온큐","ionq","ion"] }
+      { name:"SPDR S&P 500 ETF", code:"SPY", symbol:"SPY", market:"NYSEARCA", keywords:["spy","s&p500","sp500","s&p 500","에스앤피"] },
+      { name:"Vanguard S&P 500 ETF", code:"VOO", symbol:"VOO", market:"NYSEARCA", keywords:["voo","s&p500","sp500","s&p 500"] },
+      { name:"Invesco QQQ Trust", code:"QQQ", symbol:"QQQ", market:"NASDAQ", keywords:["qqq","나스닥100","nasdaq100"] },
+      { name:"Schwab US Dividend Equity ETF", code:"SCHD", symbol:"SCHD", market:"NYSEARCA", keywords:["schd","배당","dividend"] },
+      { name:"iShares Semiconductor ETF", code:"SOXX", symbol:"SOXX", market:"NASDAQ", keywords:["soxx","반도체"] },
+      { name:"VanEck Semiconductor ETF", code:"SMH", symbol:"SMH", market:"NASDAQ", keywords:["smh","반도체"] }
     ];
 
     let currentStock = null;
@@ -907,7 +911,13 @@
     }
 
     function normalize(text) {
-      return String(text || "").trim().toLowerCase().replace(/\s/g,"");
+      return String(text || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s/g,"")
+        .replaceAll("-", "")
+        .replaceAll("_", "")
+        .replaceAll("&", "");
     }
 
     function normalizeQuestion(text) {
@@ -972,28 +982,77 @@
 
       return LOCAL_STOCK_MASTER.filter(item => {
         const targets = [item.name, item.code, item.symbol, item.market, ...item.keywords].map(normalize);
-        return targets.some(target => target.includes(key));
-      }).slice(0,8);
+        return targets.some(target => target.includes(key) || key.includes(target));
+      }).slice(0, 8);
     }
 
-    function updateSuggestions(keyword) {
-      const suggestionBox = document.getElementById("suggestionBox");
-      const local = resolveLocalSuggestions(keyword);
+    async function searchServerSuggestions(keyword) {
+      if (!keyword || keyword.trim().length === 0) return [];
 
-      if (local.length === 0) {
+      try {
+        const response = await fetch("/api/search?q=" + encodeURIComponent(keyword.trim()));
+
+        if (!response.ok) {
+          return resolveLocalSuggestions(keyword);
+        }
+
+        const data = await response.json();
+
+        if (!data.results || !Array.isArray(data.results)) {
+          return resolveLocalSuggestions(keyword);
+        }
+
+        return data.results;
+      } catch (error) {
+        console.error(error);
+        return resolveLocalSuggestions(keyword);
+      }
+    }
+
+    async function updateSuggestions(keyword) {
+      const suggestionBox = document.getElementById("suggestionBox");
+
+      if (!keyword || keyword.trim().length === 0) {
         suggestionBox.style.display = "none";
         suggestionBox.innerHTML = "";
         return;
       }
 
-      suggestionBox.innerHTML = local.map((item,index) => `
+      const serverResults = await searchServerSuggestions(keyword);
+      const localResults = resolveLocalSuggestions(keyword);
+
+      const merged = [];
+      const seen = new Set();
+
+      [...localResults, ...serverResults].forEach(item => {
+        if (!item || !item.symbol) return;
+
+        if (seen.has(item.symbol)) return;
+
+        seen.add(item.symbol);
+        merged.push({
+          name: item.name || item.shortName || item.symbol,
+          code: item.code || item.symbol.replace(".KS", "").replace(".KQ", ""),
+          symbol: item.symbol,
+          market: item.market || item.exchange || "GLOBAL",
+          keywords: item.keywords || []
+        });
+      });
+
+      if (merged.length === 0) {
+        suggestionBox.style.display = "none";
+        suggestionBox.innerHTML = "";
+        return;
+      }
+
+      suggestionBox.innerHTML = merged.slice(0, 10).map((item,index) => `
         <div class="suggestion-item" onclick="selectSuggestion(${index})">
           <div class="suggest-name">${escapeHtml(item.name)}</div>
           <div class="suggest-code">${escapeHtml(item.market)} · ${escapeHtml(item.code)} · ${escapeHtml(item.symbol)}</div>
         </div>
       `).join("");
 
-      window.__currentSuggestions = local;
+      window.__currentSuggestions = merged.slice(0, 10);
       suggestionBox.style.display = "block";
     }
 
@@ -1007,13 +1066,36 @@
       searchStock(item);
     }
 
-    function resolveSymbolFromInput(input) {
+    async function resolveSymbolFromInput(input) {
       if (selectedSuggestion) return selectedSuggestion;
 
       const keyword = input.trim();
+
       const local = resolveLocalSuggestions(keyword);
 
       if (local.length > 0) return local[0];
+
+      try {
+        const response = await fetch("/api/search?q=" + encodeURIComponent(keyword));
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.results && data.results.length > 0) {
+            const first = data.results[0];
+
+            return {
+              name: first.name || first.symbol,
+              code: first.code || first.symbol.replace(".KS", "").replace(".KQ", ""),
+              symbol: first.symbol,
+              market: first.market || "GLOBAL",
+              keywords: []
+            };
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
 
       if (/^[0-9]{6}$/.test(keyword)) {
         return { name:keyword, code:keyword, symbol:keyword + ".KS", market:"KOSPI/KOSDAQ", keywords:[] };
@@ -1055,16 +1137,44 @@
       if (typeof keywordOrItem === "object" && keywordOrItem.symbol) {
         item = keywordOrItem;
       } else {
-        item = resolveSymbolFromInput(keywordOrItem);
+        item = await resolveSymbolFromInput(keywordOrItem);
       }
 
-      const chart = await fetchYahooChart(item.symbol, "1y", "1d");
+      let chart = null;
+      let finalSymbol = item.symbol;
+
+      try {
+        chart = await fetchYahooChart(finalSymbol, "1y", "1d");
+      } catch (error) {
+        if (/^[0-9]{6}$/.test(item.code || item.name || "")) {
+          const code = item.code || item.name;
+
+          const candidates = [
+            code + ".KS",
+            code + ".KQ"
+          ];
+
+          for (const candidate of candidates) {
+            try {
+              chart = await fetchYahooChart(candidate, "1y", "1d");
+              finalSymbol = candidate;
+              break;
+            } catch (innerError) {
+              continue;
+            }
+          }
+        }
+
+        if (!chart) {
+          throw error;
+        }
+      }
 
       return {
-        symbol: item.symbol,
+        symbol: finalSymbol,
         shortName: item.name,
-        code: item.code,
-        exchange: item.market,
+        code: item.code || finalSymbol.replace(".KS", "").replace(".KQ", ""),
+        exchange: item.market || "GLOBAL",
         chart
       };
     }
@@ -1410,7 +1520,7 @@
 
       const queryText = itemFromSuggestion ? itemFromSuggestion.name : keyword;
 
-      addBotMessage(`'${escapeHtml(queryText)}' 종목을 검색하고 있습니다. 선택한 투자 유형 기준으로 분석합니다.`);
+      addBotMessage(`'${escapeHtml(queryText)}' 종목/ETF를 검색하고 있습니다. 선택한 투자 유형 기준으로 분석합니다.`);
 
       try {
         const searchInfo = await searchYahooSymbol(itemFromSuggestion || keyword);
@@ -1444,8 +1554,8 @@
 
         addBotMessage(
           `검색에 실패했습니다.<br>
-          국내 주식은 <b>6자리 종목코드</b>로 검색해 보세요. 예: 000660, 005930, 012450<br>
-          해외 주식은 <b>티커</b>로 검색해 보세요. 예: AAPL, NVDA, TSLA, MSFT, IONQ`
+          국내 주식은 <b>6자리 종목코드</b>로 검색해 보세요. 예: 000660, 005930, 247540<br>
+          해외 주식/ETF는 <b>티커</b>로 검색해 보세요. 예: AAPL, NVDA, SPY, VOO, QQQ, SCHD, SOXX`
         );
       }
     }
@@ -2344,7 +2454,7 @@
       if (!currentStock) {
         return `
           먼저 좌측 검색창에서 분석할 종목을 조회해 주세요.<br>
-          예: SK하이닉스, 삼성전자, 000660, NVDA, TSLA
+          예: SK하이닉스, 삼성전자, 000660, NVDA, SPY, VOO, QQQ
         `;
       }
 
